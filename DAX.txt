@@ -213,3 +213,24 @@ IF(
 	HASONEVALUE('Salesperson (Perfomance)' [Salesperson]), 
 	SUM(Targets[TargetAmount])
 )
+
+Cria tabela com  determinado status com base em outra
+
+Product_Bikes = 
+FILTER(
+    Products, 
+    Products[Category] = "Bike" && Products[Status] = "Current"
+)
+
+Define quais colunas trazer
+
+Product_Bikes = 
+SELECTCOLUMNS(
+    FILTER(
+        Products, 
+        Products[Category] = "Bike" && Products[Status] = "Current"
+    ),
+    "ProductID", Products[ProductID],
+    "ProductName", Products[ProductName],
+    "Price", Products[Price]
+)
