@@ -1,0 +1,215 @@
+Calculo idade com data de nascimento
+
+NewAge = INT (YEARFRAC ( Customer[BirthDay], TODAY (), 1 ) )
+
+Medida que representa o lucro
+
+Lucro = 
+SUMX(
+	OrderRows,
+	OrderRow[Unit Price] * OrderRow[Quantity] - OrderRows[Unit Cost] * OrderRows[Quantity]
+)
+
+Metricas de filtro
+- quantidade de mulheres
+
+countCustomers =
+COUNTROWS(
+	Customer[CostumerKey]
+)
+
+order_computers = 
+CALCULATE(
+	[countCustomers], 
+	FILTER(	'Product',	'Product'[Category] = "Computers"))
+
+OrdersFeMale = 
+CALCULATE(
+	[order_computers], 
+	FILTER(Customer, Customer[Gender]="Female"))
+
+- grupo de idades
+
+Clientes por Faixa e Marca (Computers) = 
+CALCULATE(
+    DISTINCTCOUNT(Orders[CustomerKey]),  // Conta clientes distintos
+    FILTER('Product', Product[Category] = "Computers" && Product[Brand] = "Contoso"),  // Filtra apenas produtos da categoria "Computers"
+    ALLEXCEPT('Product', Product[Brand]),  // Mantém o filtro por Brand (marca)
+    VALUES(Customer[Age Group])  // Considera a faixa etária do cliente
+) 
+
+- cor do computador comprado
+
+Clientes (Computers) por Cor = 
+CALCULATE(
+    DISTINCTCOUNT(Orders[CustomerKey]),  // Conta clientes distintos
+    FILTER('Product', Product[Category] = "Computers"), // Filtra pela categoria "Computers" e marca "Contoso"
+VALUES(Product[Color])  // Filtra pela cor do produto
+)
+
+Obter o número de dias desde a data da encomenda 
+
+TotalDiasDesdeEncomenda = TODAY()-Sales[OrderDate]
+
+Quantos anos completos passaram
+
+AnosDesdeEncomenda = INT ( YEARFRAC(Sales[OrderDate],TODAY(),1))
+
+Indica os dias sobrantes 
+
+RestoDiasDesdeEncomenda = TODAY()-date(YEAR(Sales[OrderDate])+Sales[AnosDesdeEncomenda],MONTH(Sales[OrderDate]),DAY(Sales[OrderDate]))
+
+Retorna formato [(x) anos e (y) dias]
+
+TempoDesdeEncomenda = Sales[AnosDesdeEncomenda]&" anos e "&Sales[RestoDiasDesdeEncomenda]&" dias"
+
+Coluna com o nome do vendedore que efetuou a venda
+
+Nome_Funcionario = RELATED(Salesperson[Salesperson])
+
+Coluna que contenha o número da SalesOrderNumber sem o “SO”
+
+NumeroSimples = SUBSTITUTE(Sales[SalesOrderNumber],"SO","")
+
+Coluna (Lucro_?) que identifique caso a venda deu ou não lucro retornando 
+
+Lucro_? = IF(Sales[Sales]>Sales[Cost],"Lucro","Prejuízo")
+
+Coluna (Bonus) que indique o bonus
+
+Bonus = 
+ var lucro = Sales[Sales] - Sales[Cost]
+ return
+switch( true(),
+    lucro>=20 && lucro<=100,5,
+    lucro>=101 && lucro<=150,10,
+    lucro>=151 && lucro<=300,15,
+    lucro>=300,40)
+
+Quantidade de clientes Mulheres
+
+Clientes Mulheres Contoso (Computers) por Cor = 
+CALCULATE(
+    DISTINCTCOUNT(Orders[CustomerKey]),  // Conta clientes distintos
+    FILTER(Product, Product[Category] = "Computers" && Product[Brand] = "Contoso"),  // Filtra pela categoria "Computers" e marca "Contoso"
+    FILTER(Customer, Customer[Gender] = "Female"),  // Filtra apenas clientes do gênero "Female" (mulheres)
+    VALUES(Product[Color])  // Agrupa pela cor do computador
+)
+
+% quantidade de clientes Mulheres
+
+Total Clientes Contoso (Computers) = 
+CALCULATE(
+    DISTINCTCOUNT(Orders[CustomerKey]),  // Conta clientes distintos
+    FILTER(Product, Product[Category] = "Computers" && Product[Brand] = "Contoso")  // Filtra pela categoria "Computers" e marca "Contoso"
+)
+
+% Clientes Mulheres Contoso (Computers) = 
+DIVIDE(
+    [Clientes Mulheres Contoso (Computers)],
+    [Total Clientes Contoso (Computers)],
+    0  // Valor padrão caso o denominador seja zero, para evitar erros
+) * 100
+
+% de cliente com filhos
+
+% Clientes com Filhos =
+VAR TotalClientes = COUNTROWS(Customer)
+VAR ClientesComFilhos = COUNTROWS(FILTER(Customer, Customer[Children] <> 0))
+RETURN
+DIVIDE(ClientesComFilhos, TotalClientes, 0)
+
+Quantidade média de filhos 
+
+Quantidade Média de Filhos (Clientes com Filhos) = 
+AVERAGEX(FILTER(Customer, Customer[Children] > 0), Customer[Children])
+
+Media de idades
+
+Média de Idades = 
+AVERAGE(Customer[Age])
+
+Obtenha a idade do cliente no momento da primeira compra Age_St_Buy
+
+First_Purchase_Date = 
+CALCULATE(
+    MIN(Sales[OrderDate]),
+    ALLEXCEPT(Sales, Sales[CustomerID])
+)
+
+Age_St_Buy = 
+DATEDIFF(Customer[BirthDate], [First_Purchase_Date], YEAR)
+
+Que obtenha a idade do cliente neste momento Age
+
+Age = 
+DATEDIFF(Customer[BirthDate], TODAY(), YEAR)
+
+CALENDARIO
+dCalendario = CALENDARAUTO()
+
+ano = YEAR(dCalendario[Date])
+
+mês nº = MONTH([Date])
+
+mês = FORMAT(dCalendario[Date], "mmm")
+
+Trim = FORMAT([Date], "Q")
+
+dia = FORMAT([Date], "dddd")
+
+Data do próximo aniversario para enviar um email de ao cliente com um voucher Next_B_Day 
+
+Next_B_Day = 
+IF(
+    DATE(YEAR(TODAY()), MONTH(Customer[BirthDate]), DAY(Customer[BirthDate])) >= TODAY(),
+    DATE(YEAR(TODAY()), MONTH(Customer[BirthDate]), DAY(Customer[BirthDate])),
+    DATE(YEAR(TODAY()) + 1, MONTH(Customer[BirthDate]), DAY(Customer[BirthDate]))
+)
+
+Trimeste da 1ª compra Quarter_St
+
+Quarter_St = 
+"Q" & QUARTER([First_Purchase_Date])
+
+Dia por extenso
+ 
+Weekday_b_day = 
+FORMAT([Next_B_Day], "dddd")
+
+15 dias (seguidos) após o dia de aniversario e calhar num domingo
+
+Voucher_end_day = 
+VAR StartDate = [Next_B_Day] + 15
+VAR DaysUntilSunday = 
+    SWITCH(
+        WEEKDAY(StartDate, 2), 
+        1, 6,  -- Segunda-feira (6 dias até domingo)
+        2, 5,  -- Terça-feira (5 dias até domingo)
+        3, 4,  -- Quarta-feira (4 dias até domingo)
+        4, 3,  -- Quinta-feira (3 dias até domingo)
+        5, 2,  -- Sexta-feira (2 dias até domingo)
+        6, 1,  -- Sábado (1 dia até domingo)
+        0      -- Domingo (0 dias)
+    )
+RETURN 
+    StartDate + DaysUntilSunday
+
+Drill Through
+
+Procurar por pormenorizar
+
+Variance = 
+IF(
+    HASONEVALUE('Salesperson (Performance)'[Salesperson]),
+    SUM(Sales[Sales]) - [Target]
+)
+
+Variance Margin = 
+DIVIDE([Variance], [Target])
+
+Target = 
+IF(
+	HASONEVALUE('Salesperson (Perfomance)' [Salesperson]), 
+	SUM(Targets[TargetAmount])
+)
