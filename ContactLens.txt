@@ -1,0 +1,20 @@
+This is a data set for fitting contact lenses (taken from Cendrowska, 1987; the data
+are available through the UCI Machine Learning Repository). The variable to be
+predicted is whether a patient should be fitted with hard, soft, or no contact lenses.
+Four patient attributes (all categorical data on nominal scales) are available to make
+this choice:
+
+• age {young, pre-presbyopic, presbyopic}
+• spectacle-prescription {myope, hypermetrope}
+• astigmatism {no, yes}
+• tear-prod-rate {reduced, normal}
+
+A listing of all 24 combinations of attributes and the recommended decisions
+on the fitting of contact lenses is given in the file ContactLens.csv. The complete
+tree is shown later; it leads to a perfect description, with no errors. A
+somewhat simpler tree, with three terminal nodes and just two attributes (tear
+production rate and astigmatism), recommends no contact lenses for patients with
+reduced tear production; soft contacts for patients with normal tear production
+and no astigmatism; and hard contact lenses for patients with normal tear production
+and astigmatism present. This tree misclassifies 3 of the 24 possible attribute
+combinations.
